@@ -30,7 +30,8 @@ SUPPORTED_FORMATS = ["mp3", "mp4", "m4a", "wav", "ogg", "flac", "webm", "opus"]
 def load_model(model_size: str = "medium") -> WhisperModel:
     device = _best_device()
     compute_type = "float16" if device == "cuda" else "int8"
-    return WhisperModel(model_size, device=device, compute_type=compute_type)
+    cpu_threads = os.cpu_count() or 4
+    return WhisperModel(model_size, device=device, compute_type=compute_type, cpu_threads=cpu_threads, num_workers=2)
 
 
 def transcribe(
@@ -51,8 +52,9 @@ def transcribe(
         }
     """
     model = load_model(model_size)
+    device = _best_device()
+    beam_size = 5 if device == "cuda" else 1
 
-    # faster-whisper needs a file path; use a temp file that is deleted on close
     suffix = ".audio"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=True) as tmp:
         tmp.write(audio_bytes)
@@ -62,7 +64,7 @@ def transcribe(
             tmp.name,
             language=language,
             task="transcribe",
-            beam_size=5,
+            beam_size=beam_size,
             vad_filter=True,
             vad_parameters={"min_silence_duration_ms": 500},
         )

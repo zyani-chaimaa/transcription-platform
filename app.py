@@ -22,53 +22,124 @@ from src.utils import download_section, result_metadata
 st.markdown(
     """
     <style>
-    /* Remove top padding */
-    .block-container { padding-top: 1.5rem; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    /* Header bar */
-    .app-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.75rem 0 1rem 0;
-        border-bottom: 2px solid #e5e7eb;
-        margin-bottom: 1.5rem;
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
     }
-    .app-title { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 0; }
-    .app-subtitle { font-size: 0.85rem; color: #6b7280; margin: 0; }
+
+    #MainMenu, footer { visibility: hidden; }
+
+    .block-container {
+        padding-top: 2rem;
+        max-width: 860px;
+    }
+
+    /* Header */
+    .app-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #111827;
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+    .app-subtitle {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        margin: 3px 0 0;
+        font-weight: 400;
+    }
+    .user-block {
+        text-align: right;
+        font-size: 0.82rem;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0;
+    }
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #6b7280;
+        padding: 0.6rem 1.1rem;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        background: transparent;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #111827 !important;
+        border-bottom: 2px solid #111827 !important;
+        background: transparent !important;
+    }
+    .stTabs [data-baseweb="tab-highlight"] { display: none; }
+    .stTabs [data-baseweb="tab-border"] { display: none; }
 
     /* Info banner */
     .info-banner {
-        background: #eff6ff;
-        border-left: 4px solid #1a56db;
-        border-radius: 0 6px 6px 0;
-        padding: 0.6rem 1rem;
-        font-size: 0.88rem;
-        color: #1e40af;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.65rem 1rem;
+        font-size: 0.82rem;
+        color: #64748b;
         margin-bottom: 1.25rem;
     }
 
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] { gap: 1rem; }
-    .stTabs [data-baseweb="tab"] { font-size: 1rem; font-weight: 500; }
-
-    /* Result box */
+    /* Transcript box */
     .transcript-box {
         background: #f9fafb;
         border: 1px solid #e5e7eb;
         border-radius: 8px;
-        padding: 1.25rem;
-        line-height: 1.75;
+        padding: 1.25rem 1.5rem;
+        line-height: 1.8;
         white-space: pre-wrap;
-        font-size: 0.95rem;
-        max-height: 420px;
+        font-size: 0.9rem;
+        color: #1f2937;
+        max-height: 400px;
         overflow-y: auto;
     }
+    .transcript-box::-webkit-scrollbar { width: 5px; }
+    .transcript-box::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 
-    /* Segment table */
-    .seg-row { display: flex; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px solid #f3f4f6; }
-    .seg-time { font-size: 0.78rem; color: #6b7280; min-width: 120px; font-family: monospace; }
-    .seg-text { font-size: 0.9rem; color: #111827; }
+    /* Segment rows */
+    .seg-row {
+        display: flex; gap: 1rem; padding: 0.45rem 0;
+        border-bottom: 1px solid #f3f4f6; align-items: baseline;
+    }
+    .seg-row:last-child { border-bottom: none; }
+    .seg-time {
+        font-size: 0.72rem; color: #9ca3af; min-width: 115px;
+        font-family: 'Menlo', monospace;
+        background: #f3f4f6; border-radius: 4px;
+        padding: 1px 6px; flex-shrink: 0;
+    }
+    .seg-text { font-size: 0.88rem; color: #111827; line-height: 1.6; }
+
+    /* Metrics */
+    [data-testid="metric-container"] {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+    }
+    [data-testid="metric-container"] label {
+        font-size: 0.72rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #9ca3af !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+        color: #111827 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -86,28 +157,28 @@ if user is None:
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
-col_title, col_user = st.columns([4, 1])
+col_title, col_user = st.columns([5, 2])
 with col_title:
     st.markdown(
-        '<div class="app-title">🎙️ Transcription Platform</div>'
-        '<div class="app-subtitle">Powered by Whisper · No data stored · Files are processed in memory only</div>',
+        '<p class="app-title">Transcription Platform</p>'
+        '<p class="app-subtitle">Powered by Whisper &nbsp;·&nbsp; Processed in memory &nbsp;·&nbsp; No data stored</p>',
         unsafe_allow_html=True,
     )
 with col_user:
-    if user.get("picture"):
-        st.markdown(
-            f'<img src="{user["picture"]}" style="width:36px;height:36px;border-radius:50%;float:right;margin-top:4px;">',
-            unsafe_allow_html=True,
-        )
+    avatar = (
+        f'<img src="{user["picture"]}" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:6px;">'
+        if user.get("picture") else ""
+    )
     st.markdown(
-        f'<div style="text-align:right;font-size:0.82rem;color:#374151;margin-top:4px;">'
-        f'<strong>{user["name"]}</strong><br>{user["email"]}</div>',
+        f'<div class="user-block" style="padding-top:4px;">'
+        f'{avatar}<strong>{user["name"]}</strong><br>'
+        f'<span style="color:#9ca3af;font-size:0.75rem;">{user["email"]}</span></div>',
         unsafe_allow_html=True,
     )
     if st.button("Sign out", use_container_width=True):
         logout()
 
-st.markdown("---")
+st.markdown('<hr style="border:none;border-top:1px solid #e5e7eb;margin:0.75rem 0 1.5rem;">', unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Sidebar — model settings
@@ -172,14 +243,14 @@ def render_result(result: dict, stem: str, audio_bytes: bytes | None, audio_ext:
             unsafe_allow_html=True,
         )
     else:
-        for seg in result["segments"]:
-            st.markdown(
-                f'<div class="seg-row">'
-                f'<span class="seg-time">{_fmt_ts(seg["start"])} → {_fmt_ts(seg["end"])}</span>'
-                f'<span class="seg-text">{seg["text"]}</span>'
-                f"</div>",
-                unsafe_allow_html=True,
-            )
+        rows = "".join(
+            f'<div class="seg-row">'
+            f'<span class="seg-time">{_fmt_ts(seg["start"])} → {_fmt_ts(seg["end"])}</span>'
+            f'<span class="seg-text">{seg["text"].strip()}</span>'
+            f'</div>'
+            for seg in result["segments"]
+        )
+        st.markdown(f'<div class="transcript-box">{rows}</div>', unsafe_allow_html=True)
 
     st.markdown("")
     download_section(result, stem)
@@ -204,16 +275,14 @@ def _fmt_ts(s: float) -> str:
 # ---------------------------------------------------------------------------
 # Tabs
 # ---------------------------------------------------------------------------
-tab_upload, tab_record = st.tabs(["📁  Upload & Transcribe", "🎤  Record & Transcribe"])
+tab_upload, tab_record = st.tabs(["Upload file", "Record audio"])
 
 
 # ── Upload tab ──────────────────────────────────────────────────────────────
 with tab_upload:
     st.markdown(
         '<div class="info-banner">'
-        "Upload an audio file and click <strong>Transcribe</strong>. "
-        "Recommended formats: MP3, M4A, OGG (keep files under 200 MB). "
-        "No file is retained after your session ends."
+        "Supported formats: MP3, M4A, WAV, OGG, FLAC · Max recommended size: 200 MB · Files are not stored after your session ends."
         "</div>",
         unsafe_allow_html=True,
     )
@@ -259,8 +328,7 @@ with tab_upload:
 with tab_record:
     st.markdown(
         '<div class="info-banner">'
-        "Record directly from your microphone. Press the button to start, press again to stop. "
-        "The recording stays in your browser until you transcribe — nothing is uploaded until you click <strong>Transcribe</strong>."
+        "Press the button to start recording, press again to stop. Nothing is uploaded until you click Transcribe."
         "</div>",
         unsafe_allow_html=True,
     )
